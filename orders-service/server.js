@@ -1,4 +1,5 @@
 const express = require("express");
+const fetch = require("node-fetch");
 
 const app = express();
 
@@ -15,15 +16,17 @@ const PRODUCTS_URL =
 const orders = [];
 let nextId = 1;
 
+app.get("/", (req, res) => {
+  res.send("Orders Service is running");
+});
+
 // Створення замовлення
 app.post("/orders", async (req, res) => {
   const { userId, productId } = req.body;
 
   try {
     // Отримання користувача
-    const userResponse = await fetch(
-      `${USERS_URL}/users/${userId}`
-    );
+    const userResponse = await fetch(`${USERS_URL}/users/${userId}`);
 
     if (!userResponse.ok) {
       return res.status(404).json({
@@ -32,9 +35,7 @@ app.post("/orders", async (req, res) => {
     }
 
     // Отримання продукту
-    const productResponse = await fetch(
-      `${PRODUCTS_URL}/products/${productId}`
-    );
+    const productResponse = await fetch(`${PRODUCTS_URL}/products/${productId}`);
 
     if (!productResponse.ok) {
       return res.status(404).json({
@@ -72,6 +73,8 @@ app.get("/orders", (req, res) => {
   res.json(orders);
 });
 
-app.listen(3003, () => {
-  console.log("Orders Service running on port 3003");
+const PORT = process.env.PORT || 3003;
+
+app.listen(PORT, () => {
+  console.log(`Orders Service running on port ${PORT}`);
 });
