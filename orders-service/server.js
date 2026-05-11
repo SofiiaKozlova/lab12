@@ -2,9 +2,13 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
-const USERS_URL = process.env.USERS_SERVICE_URL || "http://users-service:3001";
+const USERS_URL =
+  process.env.USERS_SERVICE_URL ||
+  "http://users-service.railway.internal:3001";
+
 const PRODUCTS_URL =
-  process.env.PRODUCTS_SERVICE_URL || "http://products-service:3002";
+  process.env.PRODUCTS_SERVICE_URL ||
+  "http://products-service.railway.internal:3002";
 
 const orders = [];
 let nextId = 1;
