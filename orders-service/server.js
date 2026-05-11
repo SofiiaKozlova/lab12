@@ -1,5 +1,8 @@
 const express = require("express");
+const fetch = require("node-fetch");
+
 const app = express();
+
 app.use(express.json());
 
 const USERS_URL =
@@ -13,23 +16,35 @@ const PRODUCTS_URL =
 const orders = [];
 let nextId = 1;
 
+// Створення замовлення
 app.post("/orders", async (req, res) => {
   const { userId, productId } = req.body;
+
   try {
-    // Перевірка існування користувача та продукту
-    const [userRes, productRes] = await Promise.all([
-      fetch(`${USERS_URL}/users/${userId}`),
-      fetch(`${PRODUCTS_URL}/products/${productId}`),
-    ]);
+    // Отримання користувача
+    const userResponse = await fetch(
+      `${USERS_URL}/users/${userId}`
+    );
 
-    if (!userRes.ok) return res.status(404).json({ error: "User not found" });
-    if (!productRes.ok)
-      return res.status(404).json({ error: "Product not found" });
+    if (!userResponse.ok) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
 
-    const [user, product] = await Promise.all([
-      userRes.json(),
-      productRes.json(),
-    ]);
+    // Отримання продукту
+    const productResponse = await fetch(
+      `${PRODUCTS_URL}/products/${productId}`
+    );
+
+    if (!productResponse.ok) {
+      return res.status(404).json({
+        error: "Product not found",
+      });
+    }
+
+    const user = await userResponse.json();
+    const product = await productResponse.json();
 
     const order = {
       id: nextId++,
@@ -40,13 +55,24 @@ app.post("/orders", async (req, res) => {
       price: product.price,
       createdAt: new Date().toISOString(),
     };
+
     orders.push(order);
+
     res.status(201).json(order);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: error.message,
+    });
   }
 });
 
-app.get("/orders", (req, res) => res.json(orders));
+// Отримання всіх замовлень
+app.get("/orders", (req, res) => {
+  res.json(orders);
+});
 
-app.listen(3003, () => console.log("Orders Service on port 3003"));
+app.listen(3003, () => {
+  console.log("Orders Service running on port 3003");
+});
